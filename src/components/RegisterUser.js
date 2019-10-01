@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import firebase from "firebase";
+import { useHistory } from "react-router";
+
 import img from "../images/login-image.jpg";
 
 export default function RegisterUser() {
@@ -7,10 +9,17 @@ export default function RegisterUser() {
   const [uid, setUid] = useState("");
   const [error, setError] = useState("");
 
+  let history = useHistory();
+
   const registerUser = async e => {
     e.preventDefault();
 
     const { email, password } = input;
+
+    //check to see if email and password inputs are empty
+    if (password === "" || email === "") {
+      return setError("You must fill in the form!");
+    }
 
     try {
       const userObject = await firebase
@@ -18,6 +27,8 @@ export default function RegisterUser() {
         .createUserWithEmailAndPassword(email, password);
       setInput({ name: "", email: "", password: "" });
       setUid(userObject.user.uid);
+      setError("");
+      history.push("/dashboard");
     } catch (err) {
       if (err.code === "auth/email-already-in-use") {
         setError(err.message);
@@ -26,26 +37,16 @@ export default function RegisterUser() {
       if (err.code === "auth/invalid-email") {
         setError(err.message);
       }
-      console.log(process.env.REACT_APP_API_KEY);
     }
   };
 
   return (
-    <div
-      style={{ display: "flex", height: "100vh", backgroundColor: "#F8F8F8" }}
-    >
-      <img src={img} alt="he road." />
+    <div style={styles.container}>
+      <img src={img} alt="The road." />
       <div style={{ width: "100%", margin: "auto auto" }}>
         {error ? <p>{error}</p> : null}
         <h1>Register an account</h1>
-        <form
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            width: "60%",
-            marginLeft: "20%"
-          }}
-        >
+        <form style={styles.formStyle}>
           <input
             type="text"
             style={styles.inputStyle}
@@ -104,5 +105,12 @@ const styles = {
     margin: 10,
     backgroundColor: "#E0E0E0",
     color: "#808080"
+  },
+  container: { display: "flex", height: "100vh", backgroundColor: "#F8F8F8" },
+  formStyle: {
+    display: "flex",
+    flexDirection: "column",
+    width: "60%",
+    marginLeft: "20%"
   }
 };
